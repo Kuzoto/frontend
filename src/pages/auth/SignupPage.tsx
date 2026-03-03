@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { authApi } from '@/lib/api'
+import { authApi, ApiError } from '@/lib/api'
 
 const FEATURES = [
   'Capture and organise your notes in one place',
@@ -15,34 +15,68 @@ const FEATURES = [
   'Plan travel ideas and grocery runs',
 ]
 
+interface FieldErrors {
+  name?: string
+  email?: string
+  password?: string
+  confirm?: string
+}
+
 export default function SignupPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
 
+  const validate = (): boolean => {
+    const errors: FieldErrors = {}
+    if (!form.name.trim()) errors.name = 'Name is required.'
+    if (!form.email.trim()) {
+      errors.email = 'Email is required.'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = 'Please enter a valid email address.'
+    }
+    if (!form.password) {
+      errors.password = 'Password is required.'
+    } else if (form.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters.'
+    }
+    if (form.password !== form.confirm) {
+      errors.confirm = 'Passwords do not match.'
+    }
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (form.password !== form.confirm) {
-      setError('Passwords do not match.')
-      return
-    }
+    if (!validate()) return
     setLoading(true)
     try {
-      const user = await authApi.signup({
+      const response = await authApi.signup({
         name: form.name,
         email: form.email,
         password: form.password,
       })
-      login(user)
+      const user = {
+        id: '',
+        name: response.name,
+        email: response.email,
+      }
+      login(user, { accessToken: response.accessToken, refreshToken: response.refreshToken })
       navigate('/dashboard')
-    } catch {
-      setError('Something went wrong. Please try again.')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -53,7 +87,7 @@ export default function SignupPage() {
       {/* Hero section */}
       <div className="flex-1 space-y-6 lg:pt-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Personal Space</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Noook</h1>
           <p className="mt-2 text-lg text-muted-foreground">
             Your all-in-one personal productivity hub.
           </p>
@@ -75,7 +109,7 @@ export default function SignupPage() {
           <CardDescription>Start organising your life today — it's free.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-1.5">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -88,6 +122,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 required
               />
+              {fieldErrors.name && <p className="text-sm text-destructive">{fieldErrors.name}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
@@ -101,6 +136,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 required
               />
+              {fieldErrors.email && <p className="text-sm text-destructive">{fieldErrors.email}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
@@ -113,8 +149,8 @@ export default function SignupPage() {
                 value={form.password}
                 onChange={handleChange}
                 required
-                minLength={8}
               />
+              {fieldErrors.password && <p className="text-sm text-destructive">{fieldErrors.password}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="confirm">Confirm password</Label>
@@ -128,6 +164,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 required
               />
+              {fieldErrors.confirm && <p className="text-sm text-destructive">{fieldErrors.confirm}</p>}
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}

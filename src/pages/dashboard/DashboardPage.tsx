@@ -67,7 +67,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">My Personal Space</h1>
+        <h1 className="text-2xl font-bold tracking-tight">My Noook</h1>
         <p className="text-muted-foreground mt-1">
           Welcome back{user ? `, ${user.name}` : ''}. What would you like to work on?
         </p>

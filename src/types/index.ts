@@ -4,11 +4,23 @@ export interface User {
   email: string
 }
 
+export interface AuthResponse {
+  accessToken: string
+  refreshToken: string
+  tokenType: string
+  expiresIn: number
+  name: string
+  email: string
+}
+
 export interface AuthState {
   user: User | null
   isAuthenticated: boolean
-  login: (user: User) => void
+  accessToken: string | null
+  refreshToken: string | null
+  login: (user: User, tokens: { accessToken: string; refreshToken: string }) => void
   logout: () => void
+  setTokens: (tokens: { accessToken: string; refreshToken: string }) => void
 }
 
 export type Theme = 'light' | 'dark' | 'system' | 'warm' | 'warm-dark'

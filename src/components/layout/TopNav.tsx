@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/useAuth'
+import { useTheme } from '@/hooks/useTheme'
 
 interface TopNavProps {
   onMenuClick?: () => void
@@ -17,6 +18,7 @@ interface TopNavProps {
 export default function TopNav({ onMenuClick }: TopNavProps) {
   const { user, isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
+  useTheme()
 
   const handleLogout = async () => {
     await logout()
@@ -39,7 +41,7 @@ export default function TopNav({ onMenuClick }: TopNavProps) {
         )}
 
         <Link to={isAuthenticated ? '/dashboard' : '/'} className="flex items-center gap-2 font-semibold text-lg">
-          <span className="text-primary">Personal Space</span>
+          <span className="text-primary">Noook</span>
         </Link>
 
         <div className="flex-1" />

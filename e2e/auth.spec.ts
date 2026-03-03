@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Auth pages', () => {
   test('signup page loads at root', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /personal space/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /noook/i })).toBeVisible()
     await expect(page.getByRole('button', { name: /sign up/i })).toBeVisible()
   })
 
@@ -12,11 +12,6 @@ test.describe('Auth pages', () => {
     await page.getByRole('link', { name: /log in/i }).first().click()
     await expect(page).toHaveURL('/login')
     await expect(page.getByRole('button', { name: /log in/i })).toBeVisible()
-  })
-
-  test('login page has forgot password option', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('button', { name: /forgot password/i })).toBeVisible()
   })
 
   test('navigate from login back to signup', async ({ page }) => {

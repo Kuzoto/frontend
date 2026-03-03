@@ -17,7 +17,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Appearance</CardTitle>
-          <CardDescription>Choose how Personal Space looks on your device.</CardDescription>
+          <CardDescription>Choose how Noook looks on your device.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">

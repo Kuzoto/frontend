@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Personal Space',
-        short_name: 'MySpace',
+        name: 'Noook',
+        short_name: 'Noook',
         description: 'Your personal productivity hub',
         theme_color: '#f8fafc',
         background_color: '#f8fafc',
