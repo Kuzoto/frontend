@@ -10,7 +10,8 @@ Personal productivity web app with notes, todos, movies, travel ideas, and groce
 | UI | React 19, Tailwind CSS v4, Radix UI primitives (shadcn/ui pattern) |
 | Routing | React Router v7 |
 | State | Zustand v5 (with localStorage persistence) |
-| Data fetching | TanStack Query v5 (configured but unused until backend exists) |
+| Rich text | TipTap (StarterKit + TaskList/TaskItem) |
+| Data fetching | TanStack Query v5 (infinite queries for notes, standard queries for labels) |
 | Icons | Lucide React |
 | PWA | vite-plugin-pwa + Workbox |
 | Unit tests | Vitest + React Testing Library |
@@ -20,16 +21,17 @@ Personal productivity web app with notes, todos, movies, travel ideas, and groce
 
 ```
 src/
-  components/ui/        Radix UI primitives styled with Tailwind (button, card, input, etc.)
+  components/ui/        Radix UI primitives styled with Tailwind (button, card, input, dialog, popover, badge, checkbox, etc.)
   components/layout/    Page shells: AuthLayout, AppLayout, TopNav, Sidebar
   components/shared/    Cross-cutting components: ProtectedRoute, ThemeToggle, FeatureCard
-  pages/                Feature pages grouped by route (auth/, dashboard/, profile/, settings/)
+  components/notes/     Notes feature: NoteCard, NoteEditor, NotesToolbar, LabelFilter, LabelManager, FloatingActionBar, EmptyState
+  pages/                Feature pages grouped by route (auth/, dashboard/, profile/, settings/, notes/)
   router/index.tsx      Single route config — two groups: public (AuthLayout) and protected (AppLayout)
   store/                Zustand stores: authStore.ts, themeStore.ts
-  hooks/                Thin wrappers over stores: useAuth.ts, useTheme.ts
-  lib/                  Shared infrastructure: api.ts (fetch wrapper + stubs), queryClient.ts, utils.ts
-  types/index.ts        All shared TypeScript interfaces (User, AuthState, Theme, Feature)
-e2e/                    Playwright tests (auth.spec.ts, dashboard.spec.ts)
+  hooks/                Thin wrappers over stores + TanStack Query hooks: useAuth.ts, useTheme.ts, useNotes.ts
+  lib/                  Shared infrastructure: api.ts (fetch wrapper), notesApi.ts (notes/labels API), queryClient.ts, utils.ts
+  types/index.ts        All shared TypeScript interfaces (User, AuthState, Theme, Feature, Note, NoteLabel, etc.)
+e2e/                    Playwright tests (auth.spec.ts, dashboard.spec.ts, notes.spec.ts)
 ```
 
 ## Build & Test Commands

@@ -4,9 +4,11 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  errors: Record<string, string> | null
+  constructor(status: number, message: string, errors: Record<string, string> | null = null) {
     super(message)
     this.status = status
+    this.errors = errors
     this.name = 'ApiError'
   }
 }
@@ -87,13 +89,15 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
 
       if (!retry.ok) {
         let message = retry.statusText
+        let errors: Record<string, string> | null = null
         try {
           const body = await retry.json()
           message = body.message ?? JSON.stringify(body)
+          errors = body.errors ?? null
         } catch {
           message = await retry.text().catch(() => retry.statusText)
         }
-        throw new ApiError(retry.status, message)
+        throw new ApiError(retry.status, message, errors)
       }
 
       if (retry.status === 204) return undefined as T
@@ -106,13 +110,15 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
 
   if (!response.ok) {
     let message = response.statusText
+    let errors: Record<string, string> | null = null
     try {
       const body = await response.json()
       message = body.message ?? JSON.stringify(body)
+      errors = body.errors ?? null
     } catch {
       message = await response.text().catch(() => response.statusText)
     }
-    throw new ApiError(response.status, message)
+    throw new ApiError(response.status, message, errors)
   }
 
   if (response.status === 204) return undefined as T

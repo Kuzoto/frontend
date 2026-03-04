@@ -145,3 +145,42 @@ All component tests follow the same setup:
 - `src/components/shared/ThemeToggle.test.tsx:4-11`
 
 Use accessibility queries (`getByRole`, `getByLabelText`, `getByText`) — never query by class name or test ID unless there is no accessible alternative. Call `vi.clearAllMocks()` in `beforeEach`.
+
+---
+
+## 13. TanStack Query Key Factories
+
+Query keys are centralized as factory objects to ensure consistent cache invalidation.
+
+- `src/hooks/useNotes.ts:18-27` — `noteKeys` and `labelKeys` factories
+
+Shape: `all` → `lists()` → `list(params)` and `details()` → `detail(id)`. Each level extends the parent array so `invalidateQueries({ queryKey: noteKeys.lists() })` invalidates all list variations.
+
+---
+
+## 14. Infinite Scroll with Intersection Observer
+
+Paginated lists use `useInfiniteQuery` from TanStack Query combined with an `IntersectionObserver` on a sentinel `<div>` at the bottom of the list.
+
+- `src/hooks/useNotes.ts:42-50` — `useNotesInfinite` with `getNextPageParam`
+- `src/pages/notes/NotesPage.tsx:59-70` — sentinel ref + observer setup
+
+The observer has `rootMargin: '200px'` for pre-fetching before the user reaches the bottom. Pages are flattened with `data.pages.flatMap(p => p.content)`.
+
+---
+
+## 15. CSS Masonry with `columns`
+
+Card grids use CSS `columns` (not CSS Grid or Masonry) for a Pinterest-style layout. Cards use `break-inside-avoid` to prevent splitting across columns.
+
+- `src/pages/notes/NotesPage.tsx` — `columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4`
+- `src/components/notes/NoteCard.tsx` — `break-inside-avoid mb-4` on each card
+
+---
+
+## 16. Optimistic/Invalidation Pattern for Mutations
+
+Mutations call `queryClient.invalidateQueries()` in `onSuccess` to refetch stale data. For bulk operations, `Promise.all` is used to run multiple mutations in parallel.
+
+- `src/hooks/useNotes.ts:53-120` — all note/label mutations follow this pattern
+- Bulk mutations: `useBulkDeleteNotes`, `useBulkArchiveNotes`
