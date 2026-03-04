@@ -14,13 +14,24 @@ export default function Toaster() {
         <div
           key={toast.id}
           className={cn(
-            'flex items-start gap-2 rounded-lg border px-4 py-3 shadow-lg animate-in slide-in-from-bottom-2 fade-in',
+            'flex items-center gap-2 rounded-lg border px-4 py-3 shadow-lg animate-in slide-in-from-bottom-2 fade-in',
             toast.variant === 'destructive'
               ? 'border-destructive/50 bg-destructive text-destructive-foreground'
               : 'border-border bg-background text-foreground'
           )}
         >
           <p className="text-sm flex-1">{toast.message}</p>
+          {toast.action && (
+            <button
+              onClick={() => {
+                toast.action!.onClick()
+                removeToast(toast.id)
+              }}
+              className="shrink-0 text-xs font-medium underline underline-offset-2 hover:no-underline"
+            >
+              {toast.action.label}
+            </button>
+          )}
           <button
             onClick={() => removeToast(toast.id)}
             className="shrink-0 rounded-sm opacity-70 hover:opacity-100"
