@@ -19,6 +19,8 @@ export const useAuthStore = create<AuthState>()(
         }
         set({ user: null, isAuthenticated: false, accessToken: null, refreshToken: null })
       },
+      forceLogout: () =>
+        set({ user: null, isAuthenticated: false, accessToken: null, refreshToken: null }),
       setTokens: (tokens: { accessToken: string; refreshToken: string }) =>
         set({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken }),
     }),

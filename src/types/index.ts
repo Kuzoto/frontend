@@ -19,7 +19,8 @@ export interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   login: (user: User, tokens: { accessToken: string; refreshToken: string }) => void
-  logout: () => void
+  logout: () => Promise<void>
+  forceLogout: () => void
   setTokens: (tokens: { accessToken: string; refreshToken: string }) => void
 }
 
@@ -106,3 +107,19 @@ export interface ApiErrorResponse {
   errors?: Record<string, string>
   timestamp: string
 }
+
+// Groceries
+export type {
+  GroceryLabel,
+  GroceryItem,
+  GroceryList,
+  GroceryListSummary,
+  GroceryListsParams,
+  GroceryListsSearchParams,
+  CreateGroceryListPayload,
+  UpdateGroceryListPayload,
+  CreateGroceryItemPayload,
+  UpdateGroceryItemPayload,
+  CreateGroceryLabelPayload,
+  UpdateGroceryLabelPayload,
+} from './grocery'
