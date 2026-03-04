@@ -38,6 +38,11 @@ function setAuthStoreTokens(accessToken: string, refreshToken: string) {
 
 let refreshPromise: Promise<AuthResponse> | null = null
 
+let onUnauthorized: (() => void) | null = null
+export function setOnUnauthorized(fn: (() => void) | null) {
+  onUnauthorized = fn
+}
+
 async function refreshTokens(): Promise<AuthResponse> {
   const store = getAuthStore()
   const refreshToken = store?.refreshToken
@@ -104,6 +109,7 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
       return retry.json() as Promise<T>
     } catch {
       refreshPromise = null
+      onUnauthorized?.()
       throw new ApiError(401, 'Session expired')
     }
   }
@@ -118,6 +124,7 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
     } catch {
       message = await response.text().catch(() => response.statusText)
     }
+    if (response.status === 401 && !skipAuth) onUnauthorized?.()
     throw new ApiError(response.status, message, errors)
   }
 
