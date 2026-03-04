@@ -16,10 +16,12 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import GroceryItemRow from '@/components/groceries/GroceryItemRow'
 import GroceryItemInput from '@/components/groceries/GroceryItemInput'
+import GroceryItemLabelManager from '@/components/groceries/GroceryItemLabelManager'
 import {
   useGroceryList,
   useGroceryLabels,
   useCreateGroceryLabel,
+  useGroceryItemLabels,
   useUpdateGroceryList,
   useDeleteGroceryList,
   useToggleGroceryArchive,
@@ -43,6 +45,7 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
   const isNew = !listId
   const { data: list, isLoading } = useGroceryList(listId)
   const { data: allLabels = [] } = useGroceryLabels()
+  const { data: allItemLabels = [] } = useGroceryItemLabels()
   const createLabel = useCreateGroceryLabel()
   const updateList = useUpdateGroceryList()
   const deleteList = useDeleteGroceryList()
@@ -60,12 +63,16 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
   const [createLabelError, setCreateLabelError] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
   const [editTitleValue, setEditTitleValue] = useState('')
+  const [selectedItemLabelId, setSelectedItemLabelId] = useState<string | null>(null)
 
   useEffect(() => {
     if (open && isNew) {
       setTitle('')
       setSelectedLabels([])
       setLocalItems([])
+    }
+    if (!open) {
+      setSelectedItemLabelId(null)
     }
   }, [open, isNew])
 
@@ -75,6 +82,17 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
   const totalCount = items.length
   const checkedCount = checkedItems.length
   const progressPercent = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
+
+  const usedItemLabels = allItemLabels.filter((l) =>
+    items.some((item) => item.labels.some((il) => il.id === l.id))
+  )
+
+  const filteredUnchecked = selectedItemLabelId
+    ? uncheckedItems.filter((i) => i.labels.some((l) => l.id === selectedItemLabelId))
+    : uncheckedItems
+  const filteredChecked = selectedItemLabelId
+    ? checkedItems.filter((i) => i.labels.some((l) => l.id === selectedItemLabelId))
+    : checkedItems
 
   function handleCreateLabel() {
     const trimmed = newLabelName.trim()
@@ -355,6 +373,34 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
             </div>
           )}
 
+          {/* Item label filter (existing list only, when labels are in use) */}
+          {!isNew && usedItemLabels.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap mb-2">
+              <button
+                onClick={() => setSelectedItemLabelId(null)}
+                className={cn(
+                  'text-xs px-2 py-0.5 rounded-full border',
+                  !selectedItemLabelId && 'bg-primary text-primary-foreground'
+                )}
+              >
+                All
+              </button>
+              {usedItemLabels.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => setSelectedItemLabelId(l.id === selectedItemLabelId ? null : l.id)}
+                  className={cn(
+                    'text-xs px-2 py-0.5 rounded-full border',
+                    selectedItemLabelId === l.id && 'bg-primary text-primary-foreground'
+                  )}
+                >
+                  {l.name}
+                </button>
+              ))}
+              <GroceryItemLabelManager />
+            </div>
+          )}
+
           {/* Items */}
           <div className="flex-1 overflow-y-auto min-h-0">
             {isNew ? (
@@ -382,7 +428,7 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
               <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
             ) : (
               <>
-                {uncheckedItems.map((item) => (
+                {filteredUnchecked.map((item) => (
                   <GroceryItemRow
                     key={item.id}
                     item={item}
@@ -392,16 +438,16 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
                   />
                 ))}
 
-                {checkedItems.length > 0 && (
+                {filteredChecked.length > 0 && (
                   <>
                     <div className="flex items-center gap-2 my-2 px-2">
                       <Separator className="flex-1" />
                       <span className="text-xs text-muted-foreground shrink-0">
-                        Checked ({checkedItems.length})
+                        Checked ({filteredChecked.length})
                       </span>
                       <Separator className="flex-1" />
                     </div>
-                    {checkedItems.map((item) => (
+                    {filteredChecked.map((item) => (
                       <GroceryItemRow
                         key={item.id}
                         item={item}
@@ -416,7 +462,7 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
             )}
 
             {/* Add item input */}
-            <GroceryItemInput allLabels={allLabels} onAdd={handleAddItem} />
+            <GroceryItemInput allItemLabels={allItemLabels} onAdd={handleAddItem} />
           </div>
 
           {/* Create button (new list only) */}

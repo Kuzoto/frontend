@@ -111,6 +111,7 @@ export interface ApiErrorResponse {
 // Groceries
 export type {
   GroceryLabel,
+  GroceryItemLabel,
   GroceryItem,
   GroceryList,
   GroceryListSummary,
@@ -122,4 +123,6 @@ export type {
   UpdateGroceryItemPayload,
   CreateGroceryLabelPayload,
   UpdateGroceryLabelPayload,
+  CreateGroceryItemLabelPayload,
+  UpdateGroceryItemLabelPayload,
 } from './grocery'

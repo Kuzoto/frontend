@@ -4,7 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query'
-import { groceryListsApi, groceryItemsApi, groceryLabelsApi } from '@/lib/groceryApi'
+import { groceryListsApi, groceryItemsApi, groceryLabelsApi, groceryItemLabelsApi } from '@/lib/groceryApi'
 import { ApiError } from '@/lib/api'
 import { useToastStore } from '@/store/toastStore'
 import type {
@@ -14,6 +14,8 @@ import type {
   UpdateGroceryItemPayload,
   CreateGroceryLabelPayload,
   UpdateGroceryLabelPayload,
+  CreateGroceryItemLabelPayload,
+  UpdateGroceryItemLabelPayload,
   PaginatedResponse,
   GroceryListSummary,
 } from '@/types'
@@ -29,6 +31,10 @@ export const groceryListKeys = {
 
 export const groceryLabelKeys = {
   all: ['groceryLabels'] as const,
+}
+
+export const groceryItemLabelKeys = {
+  all: ['groceryItemLabels'] as const,
 }
 
 // Error helper
@@ -253,6 +259,49 @@ export function useDeleteGroceryLabel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groceryLabelKeys.all })
       queryClient.invalidateQueries({ queryKey: groceryListKeys.lists() })
+    },
+    onError: showError,
+  })
+}
+
+// Item label query + mutations
+export function useGroceryItemLabels() {
+  return useQuery({
+    queryKey: groceryItemLabelKeys.all,
+    queryFn: groceryItemLabelsApi.getAll,
+  })
+}
+
+export function useCreateGroceryItemLabel() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateGroceryItemLabelPayload) => groceryItemLabelsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groceryItemLabelKeys.all })
+    },
+    onError: showError,
+  })
+}
+
+export function useUpdateGroceryItemLabel() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateGroceryItemLabelPayload }) =>
+      groceryItemLabelsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groceryItemLabelKeys.all })
+    },
+    onError: showError,
+  })
+}
+
+export function useDeleteGroceryItemLabel() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => groceryItemLabelsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groceryItemLabelKeys.all })
+      queryClient.invalidateQueries({ queryKey: groceryListKeys.all })
     },
     onError: showError,
   })
