@@ -23,13 +23,14 @@ function getAuthStore() {
   }
 }
 
-function setAuthStoreTokens(accessToken: string, refreshToken: string) {
+function setAuthStoreTokens(accessToken: string, refreshToken: string, expiresAt: number) {
   const raw = localStorage.getItem('auth-storage')
   if (!raw) return
   try {
     const parsed = JSON.parse(raw)
     parsed.state.accessToken = accessToken
     parsed.state.refreshToken = refreshToken
+    parsed.state.expiresAt = expiresAt
     localStorage.setItem('auth-storage', JSON.stringify(parsed))
   } catch {
     // ignore
@@ -59,7 +60,8 @@ async function refreshTokens(): Promise<AuthResponse> {
   }
 
   const data = (await response.json()) as AuthResponse
-  setAuthStoreTokens(data.accessToken, data.refreshToken)
+  setAuthStoreTokens(data.accessToken, data.refreshToken, data.expiresAt)
+  startRefreshTimer(data.expiresAt)
   return data
 }
 
@@ -81,7 +83,7 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
     headers,
   })
 
-  if (response.status === 401 && !skipAuth && store?.refreshToken) {
+  if ((response.status === 401 || response.status === 403) && !skipAuth && store?.refreshToken) {
     try {
       if (!refreshPromise) {
         refreshPromise = refreshTokens()
@@ -124,7 +126,7 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
     } catch {
       message = await response.text().catch(() => response.statusText)
     }
-    if (response.status === 401 && !skipAuth) onUnauthorized?.()
+    if ((response.status === 401 || response.status === 403) && !skipAuth) onUnauthorized?.()
     throw new ApiError(response.status, message, errors)
   }
 
@@ -133,6 +135,29 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
 }
 
 export { ApiError }
+
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+
+export function startRefreshTimer(expiresAt: number) {
+  stopRefreshTimer()
+  const delay = expiresAt - Date.now() - 60_000 // 1 min buffer
+  if (delay <= 0) {
+    // Token already expired or about to — refresh immediately
+    refreshTokens().catch(() => onUnauthorized?.())
+    return
+  }
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null
+    refreshTokens().catch(() => onUnauthorized?.())
+  }, delay)
+}
+
+export function stopRefreshTimer() {
+  if (refreshTimer !== null) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+}
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
