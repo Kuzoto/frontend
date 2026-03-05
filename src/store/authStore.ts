@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, AuthState } from '@/types'
-import { authApi } from '@/lib/api'
+import { authApi, stopRefreshTimer } from '@/lib/api'
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -14,6 +14,7 @@ export const useAuthStore = create<AuthState>()(
       login: (user: User, tokens: { accessToken: string; refreshToken: string; expiresAt: number }) =>
         set({ user, isAuthenticated: true, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, expiresAt: tokens.expiresAt }),
       logout: async () => {
+        stopRefreshTimer()
         const { refreshToken } = get()
         if (refreshToken) {
           await authApi.logout(refreshToken).catch(() => {})
