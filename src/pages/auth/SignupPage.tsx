@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { authApi, ApiError } from '@/lib/api'
+import { authApi, ApiError, startRefreshTimer } from '@/lib/api'
 
 const FEATURES = [
   'Capture and organise your notes in one place',
@@ -69,7 +69,8 @@ export default function SignupPage() {
         name: response.name,
         email: response.email,
       }
-      login(user, { accessToken: response.accessToken, refreshToken: response.refreshToken })
+      login(user, { accessToken: response.accessToken, refreshToken: response.refreshToken, expiresAt: response.expiresAt })
+      startRefreshTimer(response.expiresAt)
       navigate('/dashboard')
     } catch (err) {
       if (err instanceof ApiError) {
