@@ -9,6 +9,7 @@ export interface AuthResponse {
   refreshToken: string
   tokenType: string
   expiresIn: number
+  expiresAt: number
   name: string
   email: string
 }
@@ -18,10 +19,11 @@ export interface AuthState {
   isAuthenticated: boolean
   accessToken: string | null
   refreshToken: string | null
-  login: (user: User, tokens: { accessToken: string; refreshToken: string }) => void
+  expiresAt: number | null
+  login: (user: User, tokens: { accessToken: string; refreshToken: string; expiresAt: number }) => void
   logout: () => Promise<void>
   forceLogout: () => void
-  setTokens: (tokens: { accessToken: string; refreshToken: string }) => void
+  setTokens: (tokens: { accessToken: string; refreshToken: string; expiresAt: number }) => void
 }
 
 export type Theme = 'light' | 'dark' | 'system' | 'warm' | 'warm-dark'
