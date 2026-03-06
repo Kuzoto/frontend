@@ -103,7 +103,12 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
       {
         onSuccess: (newLabel) => {
           setNewLabelName('')
-          setSelectedLabels((prev) => [...prev, newLabel.id])
+          if (isNew) {
+            setSelectedLabels((prev) => [...prev, newLabel.id])
+          } else if (list) {
+            const currentIds = (list.labels ?? []).map((l) => l.id)
+            updateList.mutate({ id: list.id, data: { title: list.title, labelIds: [...currentIds, newLabel.id] } })
+          }
         },
         onError: (err) => {
           if (err instanceof ApiError && err.status === 409) {
@@ -126,7 +131,7 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
       const newIds = currentIds.includes(id)
         ? currentIds.filter((l) => l !== id)
         : [...currentIds, id]
-      updateList.mutate({ id: list.id, data: { labelIds: newIds } })
+      updateList.mutate({ id: list.id, data: { title: list.title, labelIds: newIds } })
     }
   }
 
@@ -210,7 +215,7 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
 
   function saveTitleEdit() {
     if (list && editTitleValue.trim()) {
-      updateList.mutate({ id: list.id, data: { title: editTitleValue.trim() } })
+      updateList.mutate({ id: list.id, data: { title: editTitleValue.trim(), labelIds: (list.labels ?? []).map((l) => l.id) } })
     }
     setEditingTitle(false)
   }

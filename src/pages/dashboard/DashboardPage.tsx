@@ -11,6 +11,7 @@ interface FeatureConfig {
   accentBg: string
   accentText: string
   accentBorder: string
+  comingSoon?: boolean
 }
 
 const FEATURES: FeatureConfig[] = [
@@ -24,6 +25,15 @@ const FEATURES: FeatureConfig[] = [
     accentBorder: 'border-t-amber-400',
   },
   {
+    title: 'Groceries',
+    description: 'Plan your shopping and never forget an item again.',
+    href: '/groceries',
+    Icon: ShoppingCart,
+    accentBg: 'bg-rose-500/15',
+    accentText: 'text-rose-600',
+    accentBorder: 'border-t-rose-500',
+  },
+  {
     title: 'Todos',
     description: 'Keep track of tasks and cross them off as you go.',
     href: '/todos',
@@ -31,6 +41,7 @@ const FEATURES: FeatureConfig[] = [
     accentBg: 'bg-green-500/15',
     accentText: 'text-green-600',
     accentBorder: 'border-t-green-500',
+    comingSoon: true,
   },
   {
     title: 'Movies',
@@ -40,6 +51,7 @@ const FEATURES: FeatureConfig[] = [
     accentBg: 'bg-purple-500/15',
     accentText: 'text-purple-600',
     accentBorder: 'border-t-purple-500',
+    comingSoon: true,
   },
   {
     title: 'Travel Ideas',
@@ -49,15 +61,7 @@ const FEATURES: FeatureConfig[] = [
     accentBg: 'bg-sky-500/15',
     accentText: 'text-sky-600',
     accentBorder: 'border-t-sky-500',
-  },
-  {
-    title: 'Groceries',
-    description: 'Plan your shopping and never forget an item again.',
-    href: '/groceries',
-    Icon: ShoppingCart,
-    accentBg: 'bg-rose-500/15',
-    accentText: 'text-rose-600',
-    accentBorder: 'border-t-rose-500',
+    comingSoon: true,
   },
 ]
 
@@ -75,7 +79,10 @@ export default function DashboardPage() {
 
       <div className="flex flex-wrap justify-center gap-4">
         {FEATURES.map((feature) => (
-          <div key={feature.href} className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
+          <div
+            key={feature.href}
+            className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+          >
             <FeatureCard {...feature} />
           </div>
         ))}

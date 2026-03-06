@@ -15,10 +15,10 @@ import { cn } from '@/lib/utils'
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { to: '/notes', label: 'Notes', Icon: StickyNote },
-  { to: '/todos', label: 'Todos', Icon: CheckSquare },
-  { to: '/movies', label: 'Movies', Icon: Film },
-  { to: '/travel', label: 'Travel Ideas', Icon: Plane },
   { to: '/groceries', label: 'Groceries', Icon: ShoppingCart },
+  { to: '/todos', label: 'Todos', Icon: CheckSquare, comingSoon: true },
+  { to: '/movies', label: 'Movies', Icon: Film, comingSoon: true },
+  { to: '/travel', label: 'Travel Ideas', Icon: Plane, comingSoon: true },
 ]
 
 interface SidebarProps {
@@ -69,24 +69,35 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </div> */}
 
           <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map(({ to, label, Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => onClose()}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  )
-                }
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-              </NavLink>
-            ))}
+            {NAV_ITEMS.map(({ to, label, Icon, comingSoon }) =>
+              comingSoon ? (
+                <div
+                  key={to}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed select-none"
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">{label}</span>
+                  <span className="text-xs bg-muted text-muted-foreground/70 rounded-full px-1.5 py-0.5 leading-none">Soon</span>
+                </div>
+              ) : (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => onClose()}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    )
+                  }
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </NavLink>
+              )
+            )}
           </nav>
         </div>
       </aside>

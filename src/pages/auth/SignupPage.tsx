@@ -84,10 +84,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-12 items-start">
+    <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-12 items-center lg:items-start">
       {/* Hero section */}
       <div className="flex-1 space-y-6 lg:pt-4">
-        <div>
+        <div className="text-center lg:text-left">
           <h1 className="text-4xl font-bold tracking-tight text-foreground">Noook</h1>
           <p className="mt-2 text-lg text-muted-foreground">
             Your all-in-one personal productivity hub.
@@ -95,7 +95,7 @@ export default function SignupPage() {
         </div>
         <ul className="space-y-3">
           {FEATURES.map((feature) => (
-            <li key={feature} className="flex items-start gap-3">
+            <li key={feature} className="flex items-start justify-center lg:justify-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <span className="text-sm text-muted-foreground">{feature}</span>
             </li>

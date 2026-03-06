@@ -236,7 +236,6 @@ export function useCreateGroceryLabel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groceryLabelKeys.all })
     },
-    onError: showError,
   })
 }
 

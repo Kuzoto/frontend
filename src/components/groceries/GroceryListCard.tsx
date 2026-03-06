@@ -1,9 +1,13 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { useGroceryList } from '@/hooks/useGroceries'
 import type { GroceryListSummary } from '@/types'
+
+const MAX_PREVIEW_ITEMS = 8
 
 interface GroceryListCardProps {
   list: GroceryListSummary
@@ -20,11 +24,22 @@ export default function GroceryListCard({
   onSelect,
   onClick,
 }: GroceryListCardProps) {
-  const itemCount = list.itemCount ?? 0
-  const checkedCount = list.checkedCount ?? 0
-  const labels = list.labels ?? []
-  const previewItems = list.previewItems ?? []
+  const { data: fullList } = useGroceryList(list.id)
+  const items = fullList?.items ?? []
+  const itemCount = items.length
+  const checkedCount = items.filter((i) => i.checked).length
+  const labels = fullList?.labels ?? list.labels ?? []
   const progressPercent = itemCount > 0 ? (checkedCount / itemCount) * 100 : 0
+
+  const uncheckedItems = items.filter((i) => !i.checked)
+  const checkedItems = items.filter((i) => i.checked)
+
+  // Truncate for preview
+  const previewUnchecked = uncheckedItems.slice(0, MAX_PREVIEW_ITEMS)
+  const remainingSlots = MAX_PREVIEW_ITEMS - previewUnchecked.length
+  const previewChecked = remainingSlots > 0 ? checkedItems.slice(0, remainingSlots) : []
+  const totalPreviewCount = previewUnchecked.length + previewChecked.length
+  const hasMore = itemCount > totalPreviewCount
 
   return (
     <Card
@@ -58,43 +73,61 @@ export default function GroceryListCard({
             </div>
             <h3 className="font-semibold text-sm truncate">{list.title}</h3>
           </div>
-          {itemCount > 0 && (
-            <span className="text-xs text-muted-foreground shrink-0">
-              {checkedCount}/{itemCount} &#10003;
-            </span>
-          )}
         </div>
 
         {/* Progress bar */}
         {itemCount > 0 && (
           <div className="mt-2">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+              <span>Progress</span>
+              <span>{checkedCount}/{itemCount} checked</span>
+            </div>
             <Progress value={progressPercent} className="h-1.5" />
           </div>
         )}
 
         {/* Item preview */}
-        {previewItems.length > 0 && (
+        {items.length > 0 && (
           <div className="mt-2">
             <div className="relative max-h-40 overflow-hidden">
               <div className="space-y-0.5">
-                {previewItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-1.5 text-xs">
-                    <span className={cn(
-                      'truncate',
-                      item.checked ? 'line-through text-muted-foreground' : 'text-foreground'
-                    )}>
-                      {item.checked ? '☑' : '☐'} {item.name}
-                    </span>
+                {previewUnchecked.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 py-0.5">
+                    <Checkbox checked={false} className="pointer-events-none h-3.5 w-3.5" tabIndex={-1} />
+                    <span className="text-xs flex-1 truncate">{item.name}</span>
+                    {item.quantity && (
+                      <span className="text-[10px] text-muted-foreground shrink-0">{item.quantity}</span>
+                    )}
                   </div>
                 ))}
+                {previewChecked.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 my-1">
+                      <Separator className="flex-1" />
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        Checked ({checkedItems.length})
+                      </span>
+                      <Separator className="flex-1" />
+                    </div>
+                    {previewChecked.map((item) => (
+                      <div key={item.id} className="flex items-center gap-2 py-0.5">
+                        <Checkbox checked className="pointer-events-none h-3.5 w-3.5" tabIndex={-1} />
+                        <span className="text-xs flex-1 truncate line-through text-muted-foreground">{item.name}</span>
+                        {item.quantity && (
+                          <span className="text-[10px] text-muted-foreground shrink-0 line-through">{item.quantity}</span>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
-              {itemCount > previewItems.length && (
+              {hasMore && (
                 <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-card to-transparent" />
               )}
             </div>
-            {itemCount > previewItems.length && (
+            {hasMore && (
               <span className="text-[10px] text-muted-foreground mt-1 block">
-                +{itemCount - previewItems.length} more
+                +{itemCount - totalPreviewCount} more
               </span>
             )}
           </div>
