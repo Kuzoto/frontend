@@ -1,73 +1,88 @@
-# React + TypeScript + Vite
+# Noook — Personal Space Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal productivity web app for managing notes, grocery lists, and more. Built as a React SPA with cookie/token-based auth and PWA support.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Feature | Status |
+|---|---|
+| Notes | Live — create, edit, pin, archive, label, search, infinite scroll |
+| Grocery Lists | Live — create, manage items, label, archive, search, infinite scroll |
+| Todos | Coming soon |
+| Movies | Coming soon |
+| Travel Ideas | Coming soon |
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Layer | Technology |
+|---|---|
+| Build | Vite 7, TypeScript 5.9 |
+| UI | React 19, Tailwind CSS v4, Radix UI primitives (shadcn/ui pattern) |
+| Routing | React Router v7 |
+| State | Zustand v5 (with localStorage persistence) |
+| Rich text | TipTap (StarterKit + TaskList/TaskItem) |
+| Data fetching | TanStack Query v5 (infinite queries for lists, standard for labels) |
+| Icons | Lucide React |
+| PWA | vite-plugin-pwa + Workbox |
+| Unit tests | Vitest + React Testing Library |
+| E2E tests | Playwright |
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 20+
+- npm 10+
+- A running backend API (see `VITE_API_URL` below)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Setup
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Install dependencies
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Copy and configure environment (optional — defaults to same-origin)
+echo "VITE_API_URL=http://localhost:8080" > .env.local
+
+# Start the dev server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app will be available at `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Environment Variables
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_API_URL` | No | Base URL for the backend API. Defaults to `''` (same origin). |
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server with HMR at `localhost:5173` |
+| `npm run build` | Type-check and bundle for production (`dist/`) |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Run unit tests with Vitest (single run) |
+| `npm run test:watch` | Run unit tests in watch mode |
+| `npm run test:e2e` | Run Playwright E2E tests (requires dev server running) |
+
+## Authentication
+
+Auth is JWT-based with refresh token support:
+
+- **Signup** (`/`) — creates an account and logs in
+- **Login** (`/login`) — email + password, returns access and refresh tokens
+- **Token refresh** — automatic, proactive refresh 1 minute before expiry via a background timer; also triggered reactively on 401/403 responses
+- **Logout** — invalidates the refresh token server-side and clears local state
+- Tokens are stored in `localStorage` via the Zustand `authStore`; all API calls attach `Authorization: Bearer <token>`
+
+## Theme
+
+Light, dark, and system themes are supported. The preference is persisted in `localStorage` via the Zustand `themeStore`. Toggle is available from the top nav and the Settings page.
+
+## PWA
+
+The app registers a service worker (Workbox) for offline support and can be installed as a PWA on supported browsers.
+
+## Project Structure
+
+See [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for a detailed breakdown of directories, pages, and components.
