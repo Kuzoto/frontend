@@ -1,6 +1,6 @@
 # Personal Space — Frontend
 
-Personal productivity web app with notes, todos, movies, travel ideas, and groceries. React SPA with cookie-based auth and PWA support. Backend is not yet implemented; `src/lib/api.ts` contains stubs.
+Personal productivity web app with notes, groceries, todos, movies, and travel ideas. React SPA with JWT-based auth (access + refresh tokens) and PWA support.
 
 ## Tech Stack
 
@@ -11,7 +11,7 @@ Personal productivity web app with notes, todos, movies, travel ideas, and groce
 | Routing | React Router v7 |
 | State | Zustand v5 (with localStorage persistence) |
 | Rich text | TipTap (StarterKit + TaskList/TaskItem) |
-| Data fetching | TanStack Query v5 (infinite queries for notes, standard queries for labels) |
+| Data fetching | TanStack Query v5 (infinite queries for notes/groceries, standard for labels) |
 | Icons | Lucide React |
 | PWA | vite-plugin-pwa + Workbox |
 | Unit tests | Vitest + React Testing Library |
@@ -23,14 +23,15 @@ Personal productivity web app with notes, todos, movies, travel ideas, and groce
 src/
   components/ui/        Radix UI primitives styled with Tailwind (button, card, input, dialog, popover, badge, checkbox, etc.)
   components/layout/    Page shells: AuthLayout, AppLayout, TopNav, Sidebar
-  components/shared/    Cross-cutting components: ProtectedRoute, ThemeToggle, FeatureCard
+  components/shared/    Cross-cutting components: ProtectedRoute, ThemeToggle, FeatureCard, ErrorBoundary
   components/notes/     Notes feature: NoteCard, NoteEditor, NotesToolbar, LabelFilter, LabelManager, FloatingActionBar, EmptyState
-  pages/                Feature pages grouped by route (auth/, dashboard/, profile/, settings/, notes/)
+  components/groceries/ Groceries feature: GroceryListCard, GroceryListEditor, GroceryToolbar, GroceryLabelFilter, GroceryLabelManager, etc.
+  pages/                Feature pages grouped by route (auth/, dashboard/, profile/, settings/, notes/, groceries/)
   router/index.tsx      Single route config — two groups: public (AuthLayout) and protected (AppLayout)
-  store/                Zustand stores: authStore.ts, themeStore.ts
-  hooks/                Thin wrappers over stores + TanStack Query hooks: useAuth.ts, useTheme.ts, useNotes.ts
-  lib/                  Shared infrastructure: api.ts (fetch wrapper), notesApi.ts (notes/labels API), queryClient.ts, utils.ts
-  types/index.ts        All shared TypeScript interfaces (User, AuthState, Theme, Feature, Note, NoteLabel, etc.)
+  store/                Zustand stores: authStore.ts, themeStore.ts, toastStore.ts
+  hooks/                Thin wrappers over stores + TanStack Query hooks: useAuth.ts, useTheme.ts, useNotes.ts, useGroceries.ts, useToast.ts
+  lib/                  Shared infrastructure: api.ts (fetch wrapper), notesApi.ts, groceryApi.ts, queryClient.ts, utils.ts
+  types/                Shared TypeScript interfaces: index.ts (User, AuthState, Note, NoteLabel, etc.), grocery.ts (GroceryList, GroceryItem, etc.)
 e2e/                    Playwright tests (auth.spec.ts, dashboard.spec.ts, notes.spec.ts)
 ```
 
@@ -49,8 +50,8 @@ npm run test:e2e     # Playwright (requires dev server running)
 
 The compiler is configured with `erasableSyntaxOnly` and `verbatimModuleSyntax` (`tsconfig.app.json`). This enforces two rules that will cause build failures if violated:
 
-- **Type-only imports must use `import type`** — `src/store/authStore.ts:1` shows correct usage
-- **No parameter property shorthand** (`public x: T` in constructors) — `src/lib/api.ts:3-10` shows the workaround
+- **Type-only imports must use `import type`** — `src/store/authStore.ts:3` shows correct usage
+- **No parameter property shorthand** (`public x: T` in constructors) — `src/lib/api.ts:5-13` shows the workaround
 
 Path alias `@/` maps to `src/`. Always use it; no relative `../../` imports.
 
@@ -58,7 +59,7 @@ Path alias `@/` maps to `src/`. Always use it; no relative `../../` imports.
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_API_URL` | No | Base URL for API calls. Defaults to `''` (same origin). See `src/lib/api.ts:1` |
+| `VITE_API_URL` | No | Base URL for API calls. Defaults to `''` (same origin). See `src/lib/api.ts:3` |
 
 ## Additional Documentation
 
