@@ -1,3 +1,6 @@
+// AI-assisted code generated with ChatGPT.
+// Prompt: Given these repos, help me implement the todos feature.
+
 import { useEffect, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { todoApi } from '@/lib/todoApi'

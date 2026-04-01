@@ -1,3 +1,6 @@
+// AI-assisted code generated with ChatGPT.
+// Prompt: Given these repos, help me implement the todos feature.
+
 import { api } from '@/lib/api'
 import type {
   Todo,

@@ -1,3 +1,6 @@
+// AI-assisted code generated with ChatGPT.
+// Prompt: Given these repos, help me implement the todos feature.
+
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { CheckSquare, Trash2, Archive, Plus } from 'lucide-react'
