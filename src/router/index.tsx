@@ -11,6 +11,7 @@ import SettingsPage from '@/pages/settings/SettingsPage'
 import NotesPage from '@/pages/notes/NotesPage'
 import GroceriesPage from '@/pages/groceries/GroceriesPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import TodosPage from '@/pages/todos/TodosPage'
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
       { path: 'groceries', element: <GroceriesPage />, errorElement: <RouteErrorBoundary /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'todos', element: <TodosPage />, errorElement: <RouteErrorBoundary /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { to: '/notes', label: 'Notes', Icon: StickyNote },
   { to: '/groceries', label: 'Groceries', Icon: ShoppingCart },
-  { to: '/todos', label: 'Todos', Icon: CheckSquare, comingSoon: true },
+  { to: '/todos', label: 'Todos', Icon: CheckSquare },
   { to: '/movies', label: 'Movies', Icon: Film, comingSoon: true },
   { to: '/travel', label: 'Travel Ideas', Icon: Plane, comingSoon: true },
 ]

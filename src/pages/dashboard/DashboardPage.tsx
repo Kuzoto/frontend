@@ -41,7 +41,6 @@ const FEATURES: FeatureConfig[] = [
     accentBg: 'bg-green-500/15',
     accentText: 'text-green-600',
     accentBorder: 'border-t-green-500',
-    comingSoon: true,
   },
   {
     title: 'Movies',

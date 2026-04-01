@@ -128,3 +128,11 @@ export type {
   CreateGroceryItemLabelPayload,
   UpdateGroceryItemLabelPayload,
 } from './grocery'
+
+export type {
+  Todo,
+  TodosListParams,
+  TodosSearchParams,
+  CreateTodoPayload,
+  UpdateTodoPayload,
+} from './todo'
