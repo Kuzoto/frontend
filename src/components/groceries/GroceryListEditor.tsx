@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, MoreVertical, Archive, Trash2, Plus } from 'lucide-react'
+import { X, MoreVertical, Archive, Trash2, Plus, Sparkles } from 'lucide-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,7 @@ import {
 import { ApiError } from '@/lib/api'
 import { useToastStore } from '@/store/toastStore'
 import type { GroceryLabel, GroceryItem, CreateGroceryItemPayload } from '@/types'
+import AiRecommendationPanel, { type AiSuggestion } from '@/components/shared/AiRecommendationPanel'
 
 interface GroceryListEditorProps {
   open: boolean
@@ -64,6 +65,7 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
   const [editingTitle, setEditingTitle] = useState(false)
   const [editTitleValue, setEditTitleValue] = useState('')
   const [selectedItemLabelId, setSelectedItemLabelId] = useState<string | null>(null)
+  const [showAiPanel, setShowAiPanel] = useState(false)
 
   useEffect(() => {
     if (open && isNew) {
@@ -468,6 +470,33 @@ export default function GroceryListEditor({ open, onOpenChange, listId, onCreate
 
             {/* Add item input */}
             <GroceryItemInput allItemLabels={allItemLabels} onAdd={handleAddItem} />
+
+            {/* AI suggestion panel */}
+            <div className="mt-2">
+              {showAiPanel ? (
+                <AiRecommendationPanel
+                  type="grocery"
+                  title={isNew ? title : list?.title}
+                  onApply={(suggestion: AiSuggestion) => {
+                    if (suggestion.type !== 'grocery') return
+                    suggestion.items.forEach((item) =>
+                      handleAddItem({ name: item.name, quantity: item.quantity ?? '', labelIds: [] })
+                    )
+                    setShowAiPanel(false)
+                  }}
+                  onDismiss={() => setShowAiPanel(false)}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAiPanel(true)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+                >
+                  <Sparkles className="h-3 w-3 text-purple-500" />
+                  AI suggestions
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Create button (new list only) */}

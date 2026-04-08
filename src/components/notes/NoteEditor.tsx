@@ -3,7 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import { Bold, Italic, List, ListOrdered, CheckSquare, Pin, Plus, X } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, CheckSquare, Pin, Plus, X, Sparkles } from 'lucide-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { useLabels, useCreateLabel } from '@/hooks/useNotes'
 import { ApiError } from '@/lib/api'
 import type { Note, NoteLabel } from '@/types'
+import AiRecommendationPanel, { type AiSuggestion } from '@/components/shared/AiRecommendationPanel'
 
 interface NoteEditorProps {
   open: boolean
@@ -31,6 +32,7 @@ export default function NoteEditor({ open, onOpenChange, note, onSave, error, fi
   const [pinned, setPinned] = useState(false)
   const [newLabelName, setNewLabelName] = useState('')
   const [createLabelError, setCreateLabelError] = useState('')
+  const [showAiPanel, setShowAiPanel] = useState(false)
   const closedByX = useRef(false)
 
   const editor = useEditor({
@@ -54,6 +56,7 @@ export default function NoteEditor({ open, onOpenChange, note, onSave, error, fi
       setPinned(note?.pinned ?? false)
       editor?.commands.setContent(note?.content ?? '')
       closedByX.current = false
+      setShowAiPanel(false)
     }
   }, [open, note, editor])
 
@@ -201,10 +204,34 @@ export default function NoteEditor({ open, onOpenChange, note, onSave, error, fi
               >
                 <CheckSquare className="h-4 w-4" />
               </ToolbarButton>
+              <div className="ml-auto">
+                <ToolbarButton
+                  active={showAiPanel}
+                  onClick={() => setShowAiPanel((v) => !v)}
+                >
+                  <Sparkles className="h-4 w-4 text-purple-500" />
+                </ToolbarButton>
+              </div>
             </div>
 
             {/* Editor */}
             <EditorContent editor={editor} />
+
+            {/* AI Recommendation Panel */}
+            {showAiPanel && (
+              <AiRecommendationPanel
+                type="note"
+                title={title}
+                currentContent={editor?.getHTML()}
+                onApply={(suggestion: AiSuggestion) => {
+                  if (suggestion.type === 'note') {
+                    editor?.commands.setContent(suggestion.html)
+                  }
+                  setShowAiPanel(false)
+                }}
+                onDismiss={() => setShowAiPanel(false)}
+              />
+            )}
 
             {/* Label picker */}
             <div className="flex items-center gap-2 flex-wrap">

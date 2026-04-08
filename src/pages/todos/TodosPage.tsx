@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { CheckSquare, Trash2, Archive, Plus } from 'lucide-react'
+import { CheckSquare, Trash2, Archive, Plus, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,11 @@ import {
   useToggleTodoArchive,
   useToggleTodoComplete,
   useDebouncedValue,
+  todoKeys,
 } from '@/hooks/useTodos'
+import { todoApi } from '@/lib/todoApi'
+import { useQueryClient } from '@tanstack/react-query'
+import AiRecommendationPanel, { type AiSuggestion } from '@/components/shared/AiRecommendationPanel'
 import type { Todo } from '@/types'
 
 function TodoRow({
@@ -76,6 +80,8 @@ export default function TodosPage() {
   const [search, setSearch] = useState('')
   const [newTitle, setNewTitle] = useState('')
   const [archived, setArchived] = useState(false)
+  const [showAiPanel, setShowAiPanel] = useState(false)
+  const queryClient = useQueryClient()
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
@@ -152,7 +158,28 @@ export default function TodosPage() {
           <Plus className="mr-2 h-4 w-4" />
           Add
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowAiPanel((v) => !v)}
+          title="Get AI suggestions"
+        >
+          <Sparkles className="h-4 w-4 text-purple-500" />
+        </Button>
       </form>
+
+      {showAiPanel && (
+        <AiRecommendationPanel
+          type="todo"
+          onApply={async (suggestion: AiSuggestion) => {
+            if (suggestion.type !== 'todo') return
+            await Promise.all(suggestion.items.map((title) => todoApi.create({ title })))
+            queryClient.invalidateQueries({ queryKey: todoKeys.lists() })
+            setShowAiPanel(false)
+          }}
+          onDismiss={() => setShowAiPanel(false)}
+        />
+      )}
 
       <div className="flex flex-col gap-3">
         {isLoading ? (
