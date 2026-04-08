@@ -44,7 +44,7 @@ export default function NoteEditor({ open, onOpenChange, note, onSave, error, fi
     content: '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] px-3 py-2',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] max-h-[40vh] overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full px-3 py-2',
       },
     },
   })

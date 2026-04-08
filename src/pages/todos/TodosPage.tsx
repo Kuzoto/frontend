@@ -173,7 +173,9 @@ export default function TodosPage() {
           type="todo"
           onApply={async (suggestion: AiSuggestion) => {
             if (suggestion.type !== 'todo') return
-            await Promise.all(suggestion.items.map((title) => todoApi.create({ title })))
+            for (const title of suggestion.items) {
+              await todoApi.create({ title })
+            }
             queryClient.invalidateQueries({ queryKey: todoKeys.lists() })
             setShowAiPanel(false)
           }}
