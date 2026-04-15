@@ -13,6 +13,21 @@ class ApiError extends Error {
   }
 }
 
+// Thrown internally when token refresh fails.
+// isTransient=true  → server/network error, keep user logged in and retry later
+// isTransient=false → bad/expired refresh token, must logout
+class RefreshFailedError extends Error {
+  isTransient: boolean
+  constructor(isTransient: boolean) {
+    super(isTransient ? 'Server temporarily unavailable' : 'Session expired')
+    this.isTransient = isTransient
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
 function getAuthStore() {
   const raw = localStorage.getItem('auth-storage')
   if (!raw) return null
@@ -47,22 +62,44 @@ export function setOnUnauthorized(fn: (() => void) | null) {
 async function refreshTokens(): Promise<AuthResponse> {
   const store = getAuthStore()
   const refreshToken = store?.refreshToken
-  if (!refreshToken) throw new ApiError(401, 'No refresh token')
+  if (!refreshToken) throw new RefreshFailedError(false)
 
-  const response = await fetch(`${BASE_URL}/api/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    })
+  } catch {
+    // Network error — Supabase unreachable, treat as transient
+    throw new RefreshFailedError(true)
+  }
 
   if (!response.ok) {
-    throw new ApiError(response.status, 'Token refresh failed')
+    // 5xx = server/DB overload (transient), 4xx = bad token (genuine auth failure)
+    throw new RefreshFailedError(response.status >= 500)
   }
 
   const data = (await response.json()) as AuthResponse
   setAuthStoreTokens(data.accessToken, data.refreshToken, data.expiresAt)
   startRefreshTimer(data.expiresAt)
   return data
+}
+
+// Retry with exponential backoff, capped at 5 minutes, for transient refresh failures
+function scheduleRefreshRetry(attempt = 0) {
+  const delay = Math.min(30_000 * 2 ** attempt, 300_000) // 30s → 60s → 120s → … → 5min
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null
+    refreshTokens().catch((err: unknown) => {
+      if (err instanceof RefreshFailedError && err.isTransient) {
+        scheduleRefreshRetry(attempt + 1)
+      } else {
+        onUnauthorized?.()
+      }
+    })
+  }, delay)
 }
 
 async function request<T>(path: string, init?: RequestInit, skipAuth = false): Promise<T> {
@@ -109,10 +146,14 @@ async function request<T>(path: string, init?: RequestInit, skipAuth = false): P
 
       if (retry.status === 204) return undefined as T
       return retry.json() as Promise<T>
-    } catch {
+    } catch (err) {
       refreshPromise = null
-      onUnauthorized?.()
-      throw new ApiError(401, 'Session expired')
+      // Only log out for genuine auth failures — not transient server/network errors
+      const isTransient = err instanceof RefreshFailedError && err.isTransient
+      if (!isTransient) {
+        onUnauthorized?.()
+      }
+      throw new ApiError(401, isTransient ? 'Server temporarily unavailable' : 'Session expired')
     }
   }
 
@@ -142,13 +183,24 @@ export function startRefreshTimer(expiresAt: number) {
   stopRefreshTimer()
   const delay = expiresAt - Date.now() - 60_000 // 1 min buffer
   if (delay <= 0) {
-    // Token already expired or about to — refresh immediately
-    refreshTokens().catch(() => onUnauthorized?.())
+    refreshTokens().catch((err: unknown) => {
+      if (err instanceof RefreshFailedError && err.isTransient) {
+        scheduleRefreshRetry()
+      } else {
+        onUnauthorized?.()
+      }
+    })
     return
   }
   refreshTimer = setTimeout(() => {
     refreshTimer = null
-    refreshTokens().catch(() => onUnauthorized?.())
+    refreshTokens().catch((err: unknown) => {
+      if (err instanceof RefreshFailedError && err.isTransient) {
+        scheduleRefreshRetry()
+      } else {
+        onUnauthorized?.()
+      }
+    })
   }, delay)
 }
 
@@ -195,3 +247,4 @@ export const authApi = {
       body: JSON.stringify({ refreshToken }),
     }, true),
 }
+
