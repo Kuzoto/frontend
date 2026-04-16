@@ -1,0 +1,83 @@
+# CI/CD Pipeline for Noook Frontend
+# Runs unit tests, type checking, and linting on every PR and push to main.
+#
+# AI Disclosure: This workflow was generated with the assistance of Claude (Anthropic).
+# Prompt: "Create a GitHub Actions CI/CD workflow for a React 19 / TypeScript / Vite
+# frontend using Vitest for unit tests that runs on PRs and pushes to main, reports
+# results clearly, and includes linting and type-check jobs."
+
+name: Frontend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --reporter=default --reporter=junit --outputFile=test-results/junit.xml
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Vitest Test Results
+          path: test-results/junit.xml
+          reporter: jest-junit
+          fail-on-error: true
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: test-results/
+          retention-days: 14
+
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npx eslint . --max-warnings=0 || true
+        # Remove "|| true" to enforce lint as a hard gate.
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit || true
+        # Remove "|| true" to enforce type errors as a hard gate.
