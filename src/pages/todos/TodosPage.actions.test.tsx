@@ -3,6 +3,7 @@
 
 import { render, screen, fireEvent } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import TodosPage from './TodosPage'
 
 const createMutate = vi.fn()
@@ -17,6 +18,15 @@ vi.mock('@/hooks/useTodos', () => ({
 }))
 
 const mockedHooks = await import('@/hooks/useTodos')
+
+function renderPage() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <TodosPage />
+    </QueryClientProvider>
+  )
+}
 
 describe('TodosPage actions', () => {
   beforeEach(() => {
@@ -49,7 +59,7 @@ describe('TodosPage actions', () => {
   })
 
   it('submits a new todo', () => {
-    render(<TodosPage />)
+    renderPage()
 
     fireEvent.change(screen.getByPlaceholderText('Add a new todo...'), {
       target: { value: 'Buy milk' },

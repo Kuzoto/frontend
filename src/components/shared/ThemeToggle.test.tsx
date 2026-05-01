@@ -19,7 +19,7 @@ describe('ThemeToggle', () => {
   it('renders all three theme options', () => {
     render(<ThemeToggle />)
     expect(screen.getByLabelText(/light theme/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/dark theme/i)).toBeInTheDocument()
+    expect(screen.getByLabelText('Dark theme')).toBeInTheDocument()
     expect(screen.getByLabelText(/system theme/i)).toBeInTheDocument()
   })
 
@@ -33,7 +33,7 @@ describe('ThemeToggle', () => {
   it('calls setTheme with "dark" when Dark button is clicked', async () => {
     const user = userEvent.setup()
     render(<ThemeToggle />)
-    await user.click(screen.getByLabelText(/dark theme/i))
+    await user.click(screen.getByLabelText('Dark theme'))
     expect(setTheme).toHaveBeenCalledWith('dark')
   })
 })
